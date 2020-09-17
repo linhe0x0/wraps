@@ -1,6 +1,6 @@
 import consola, { LogLevel } from 'consola'
 import _ from 'lodash'
-import mongoose, { Connection } from 'mongoose'
+import { Connection, Mongoose } from 'mongoose'
 
 const logger = consola.create({
   level: LogLevel.Warn,
@@ -19,7 +19,8 @@ interface MongoOptions {
   reuseConnection: boolean
 }
 
-interface Mongo {
+export interface Mongo {
+  mongoose?: Mongoose
   config: MongodbConfig
   options: MongoOptions
   connection?: Connection
@@ -29,6 +30,7 @@ interface Mongo {
 }
 
 const mongo: Mongo = {
+  mongoose: undefined,
   config: {
     host: '',
     port: 27017,
@@ -56,6 +58,12 @@ const mongo: Mongo = {
     }
   },
   connect(reconnect?: boolean): Promise<Mongo> {
+    const { mongoose } = this
+
+    if (!mongoose) {
+      throw new Error('Mongoose instance missed.')
+    }
+
     this.validate()
 
     return new Promise((resolve, reject) => {
@@ -76,8 +84,9 @@ const mongo: Mongo = {
       ) {
         if (reconnect || !this.options.reuseConnection) {
           mongoose.connection.close()
-          // mongoose.connection.deleteModel(/.+/)
         } else {
+          mongoose.connection.deleteModel(/.+/)
+
           logger.info(
             'Reuse previous connection. If you need to reconnect, please restart the server manual.'
           )
@@ -122,6 +131,7 @@ const mongo: Mongo = {
 }
 
 export default function main(
+  mongoose: Mongoose,
   config?: MongodbConfig,
   options?: Partial<MongoOptions>
 ): Mongo {
@@ -134,6 +144,7 @@ export default function main(
     mongo.config = config
   }
 
+  mongo.mongoose = mongoose
   mongo.options = opts
 
   logger.level = opts.debug ? LogLevel.Verbose : LogLevel.Warn

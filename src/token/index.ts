@@ -5,8 +5,8 @@ import _ from 'lodash'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TokenPayload = Record<string, any>
 
-interface TokenPayloadResult {
-  payload: TokenPayload
+interface TokenPayloadResult<T> {
+  payload?: T
 }
 
 const appName = config.has('app.name') ? config.get('app.name') : undefined
@@ -45,12 +45,12 @@ export function signToken(
   })
 }
 
-export function parseToken(
+export function parseToken<T>(
   token: string,
   secret?: string,
   issuer?: string,
   options?: VerifyOptions
-): Promise<TokenPayload> {
+): Promise<T> {
   const opts = _.assign(
     {
       issuer: issuer || appName || 'jwt',
@@ -58,12 +58,12 @@ export function parseToken(
     options
   )
 
-  return new Promise((resolve, reject) => {
+  return new Promise<T>((resolve, reject) => {
     jwt.verify(
       token,
       secret || defaultSecret,
       opts,
-      (err: Error | null, result: Partial<TokenPayloadResult> | undefined) => {
+      (err: Error | null, result: TokenPayloadResult<T> | undefined) => {
         if (err) {
           reject(err)
           return
@@ -80,7 +80,46 @@ export function parseToken(
   })
 }
 
+export function verifyToken(
+  token: string,
+  secret?: string,
+  issuer?: string,
+  options?: VerifyOptions
+): Promise<void> {
+  const opts = _.assign(
+    {
+      issuer: issuer || appName || 'jwt',
+    },
+    options
+  )
+
+  return new Promise<void>((resolve, reject) => {
+    jwt.verify(token, secret || defaultSecret, opts, (err: Error | null) => {
+      if (err) {
+        reject(err)
+        return
+      }
+
+      resolve()
+    })
+  })
+}
+
+export function parseTokenWithoutVerify<T>(token: string): T {
+  const payload = _.split(token, '.')[1] || ''
+
+  const value = Buffer.from(payload, 'base64').toString('utf8')
+
+  try {
+    return JSON.parse(value).payload
+  } catch (err) {
+    return {} as T
+  }
+}
+
 export default {
   sign: signToken,
   parse: parseToken,
+  verify: verifyToken,
+  parseTokenWithoutVerify,
 }
