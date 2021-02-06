@@ -11,7 +11,7 @@
     "type-check": "tsc --noEmit",
     "lint": "npm run type-check && eslint --ext ts ./src",
     "lint-with-fix": "eslint --ext ts --fix ./src",
-    "test": "jest --coverage --onlyChanged",
+    "test": "jest --coverage --onlyChanged ./dist",
     "prepublishOnly": "npm run build"
   },
   "author": "sqrtthree <imsqrtthree@gmail.com>",
@@ -41,6 +41,7 @@
   "devDependencies": {
     "@sqrtthree/prettier-config": "~2.0.1",
     "@sqrtthree/tsconfig": "~0.1.0",
+    "@types/jest": "~26.0.20",
     "@types/jsonwebtoken": "~8.5.0",
     "@types/lodash": "~4.14.161",
     "@types/mongoose": "~5.7.36",
@@ -53,6 +54,7 @@
     "eslint-plugin-import": "~2.22.0",
     "eslint-plugin-prettier": "~3.1.4",
     "husky": "~4.3.0",
+    "jest": "~26.6.3",
     "lint-staged": "~10.3.0",
     "prettier": "~2.1.2",
     "rimraf": "~3.0.2",

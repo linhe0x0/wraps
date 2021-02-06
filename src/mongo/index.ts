@@ -1,153 +1,73 @@
-import consola, { LogLevel } from 'consola'
-import _ from 'lodash'
-import { Connection, Mongoose } from 'mongoose'
+import querystring from 'querystring'
 
-const logger = consola.create({
-  level: LogLevel.Warn,
-})
+// To fix all deprecation warnings in the mongoose.
+// Open https://mongoosejs.com/docs/deprecations.html to get more details.
+export const preferredConnectionOptions = {
+  useNewUrlParser: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+}
 
-export interface MongodbConfig {
+interface ExtraHostOption {
   host: string
-  port: number
+  port?: number
+}
+
+interface ConnectionURIOptions {
+  host: string
+  port?: number
+  extras?: ExtraHostOption[]
   database: string
-  user?: string
-  pass?: string
+  username?: string
+  password?: string
+  options?: Record<string, string>
 }
 
-interface MongoOptions {
-  debug: boolean
-  reuseConnection: boolean
-}
+/**
+ * Format options to standard connection string of the MongoDB.
+ *
+ * @return mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
+ */
+export function makeConnectionURI(options: ConnectionURIOptions): string {
+  const protocol = 'mongodb://'
 
-export interface Mongo {
-  mongoose?: Mongoose
-  config: MongodbConfig
-  options: MongoOptions
-  connection?: Connection
-  validate: () => void
-  connect: (reconnect?: boolean) => Promise<Mongo>
-  reconnect: () => Promise<Mongo>
-}
+  let uri = ''
 
-const mongo: Mongo = {
-  mongoose: undefined,
-  config: {
-    host: '',
-    port: 27017,
-    database: '',
-  },
-  options: {
-    debug: false,
-    reuseConnection: true,
-  },
-  validate() {
-    if (!this.config) {
-      throw new Error('Config missed.')
+  if (options.username) {
+    if (options.password) {
+      uri += `${protocol}${options.username}:${options.password}@${options.host}`
+    } else {
+      throw new Error('Password is required when the username is specified.')
     }
-
-    if (!this.config.host) {
-      throw new Error('host missed.')
-    }
-
-    if (!this.config.port) {
-      throw new Error('port missed.')
-    }
-
-    if (!this.config.database) {
-      throw new Error('database missed.')
-    }
-  },
-  connect(reconnect?: boolean): Promise<Mongo> {
-    const { mongoose } = this
-
-    if (!mongoose) {
-      throw new Error('Mongoose instance missed.')
-    }
-
-    this.validate()
-
-    return new Promise((resolve, reject) => {
-      let mongodbURI = 'mongodb://'
-
-      if (this.config.user) {
-        mongodbURI += `${this.config.user}:${this.config.pass}@`
-      }
-
-      mongodbURI += `${this.config.host}:${this.config.port}/${this.config.database}`
-
-      logger.debug('')
-      logger.debug('Connecting to the mongodb with url:', mongodbURI)
-
-      if (
-        mongoose.connection.readyState === 1 ||
-        mongoose.connection.readyState === 2
-      ) {
-        if (reconnect || !this.options.reuseConnection) {
-          mongoose.connection.close()
-        } else {
-          mongoose.connection.deleteModel(/.+/)
-
-          logger.info(
-            'Reuse previous connection. If you need to reconnect, please restart the server manual.'
-          )
-          logger.debug('')
-          resolve(this)
-          return
-        }
-      }
-
-      mongoose
-        .connect(mongodbURI, {
-          // Fix deprecation warnings.
-          // More details are https://mongoosejs.com/docs/deprecations.html
-          useNewUrlParser: true,
-          useFindAndModify: false,
-          useCreateIndex: true,
-          useUnifiedTopology: true,
-        })
-        .catch((err) => {
-          logger.error(`Failed to connect to ${mongodbURI}.`, err.message)
-          process.exit(1)
-        })
-
-      mongoose.connection.on('error', (err) => {
-        logger.error('Error from mongodb connection:', err.message)
-        reject(err)
-      })
-
-      mongoose.connection.once('open', () => {
-        logger.success(`Connect to mongodb with ${mongodbURI} successfully.`)
-        logger.debug('')
-
-        this.connection = mongoose.connection
-
-        resolve(this)
-      })
-    })
-  },
-  reconnect() {
-    return this.connect(true)
-  },
-}
-
-export default function main(
-  mongoose: Mongoose,
-  config?: MongodbConfig,
-  options?: Partial<MongoOptions>
-): Mongo {
-  const opts: MongoOptions = _.defaults(_.assign({}, mongo.options, options), {
-    debug: false,
-    reuseConnection: true,
-  })
-
-  if (config) {
-    mongo.config = config
+  } else {
+    uri += `${protocol}${options.host}`
   }
 
-  mongo.mongoose = mongoose
-  mongo.options = opts
+  if (options.port) {
+    uri += `:${options.port}`
+  }
 
-  logger.level = opts.debug ? LogLevel.Verbose : LogLevel.Warn
+  if (options.extras && options.extras.length) {
+    const extras = options.extras
+      .map((item) => (item.port ? `${item.host}:${item.port}` : `${item.host}`))
+      .join(',')
 
-  return mongo
+    uri += `,${extras}`
+  }
+
+  uri += `/${options.database}`
+
+  if (options.options) {
+    const opts = querystring.stringify(options.options)
+
+    uri += `?${opts}`
+  }
+
+  return uri
+}
+
+export default {
+  makeConnectionURI,
+  preferredConnectionOptions,
 }
