@@ -39,7 +39,7 @@ export function signToken(
           return
         }
 
-        resolve(token)
+        resolve(token || '')
       }
     )
   })
