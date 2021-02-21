@@ -21,7 +21,7 @@ export function signToken(
   const opts = _.assign(
     {
       expiresIn: '30d',
-      issuer: issuer || appName || 'jwt',
+      issuer: issuer || appName || undefined,
     },
     options
   )
@@ -53,7 +53,7 @@ export function parseToken<T>(
 ): Promise<T> {
   const opts = _.assign(
     {
-      issuer: issuer || appName || 'jwt',
+      issuer: issuer || appName || undefined,
     },
     options
   )
@@ -88,7 +88,7 @@ export function verifyToken(
 ): Promise<void> {
   const opts = _.assign(
     {
-      issuer: issuer || appName || 'jwt',
+      issuer: issuer || appName || undefined,
     },
     options
   )
