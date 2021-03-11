@@ -13,3 +13,5 @@ export {
 } from './token'
 
 export { default as bcrypt } from './bcrypt'
+
+export { default as consola } from './consola'
