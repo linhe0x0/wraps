@@ -1,3 +1,5 @@
+process.env.SUPPRESS_NO_CONFIG_WARNING = 'y'
+
 export {
   default as mongo,
   makeConnectionURI,
