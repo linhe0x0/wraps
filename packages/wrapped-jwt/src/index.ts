@@ -1,3 +1,5 @@
+process.env.SUPPRESS_NO_CONFIG_WARNING = 'y'
+
 import config from 'config'
 import jwt, { SignOptions, VerifyOptions } from 'jsonwebtoken'
 import _ from 'lodash'
