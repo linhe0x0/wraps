@@ -12,28 +12,45 @@ interface TokenPayloadResult<T> {
 }
 
 const appName = config.has('app.name') ? config.get('app.name') : undefined
-const defaultSecret = config.has('keys') ? config.get('keys')[0] : 'a'
+const defaultSecret = config.has('app.keys')
+  ? _.first(config.get('app.keys'))
+  : ''
+
+interface SecretOptions {
+  secret?: string
+}
+
+type SignTokenOptions = SignOptions & SecretOptions
+type VerifyTokenOptions = VerifyOptions & SecretOptions
 
 export function signToken(
   payload: TokenPayload,
-  secret?: string,
-  issuer?: string,
-  options?: SignOptions
+  subject?: string,
+  options?: SignTokenOptions
 ): Promise<string> {
+  const now = Math.floor(Date.now() / 1000)
+  const rest = 86400 - (now % 86400)
+  const expiresInDays = 30
+  const deviation = 7200
+  const expiresIn = now + expiresInDays * 86400 + rest + deviation
+
   const opts = _.assign(
     {
-      expiresIn: '30d',
-      issuer: issuer || appName || undefined,
+      expiresIn,
+      subject,
+      issuer: appName,
     },
     options
   )
+
+  const secret = options && options.secret ? options.secret : defaultSecret
 
   return new Promise((resolve, reject) => {
     jwt.sign(
       {
         payload,
       },
-      secret || defaultSecret,
+      secret,
       opts,
       (err: Error | null, token: string | undefined) => {
         if (err) {
@@ -49,21 +66,24 @@ export function signToken(
 
 export function parseToken<T>(
   token: string,
-  secret?: string,
+  subject?: string,
   issuer?: string,
-  options?: VerifyOptions
+  options?: VerifyTokenOptions
 ): Promise<T> {
   const opts = _.assign(
     {
-      issuer: issuer || appName || undefined,
+      subject,
+      issuer: issuer || appName,
     },
     options
   )
 
+  const secret = options && options.secret ? options.secret : defaultSecret
+
   return new Promise<T>((resolve, reject) => {
     jwt.verify(
       token,
-      secret || defaultSecret,
+      secret,
       opts,
       (err: Error | null, result: TokenPayloadResult<T> | undefined) => {
         if (err) {
@@ -84,19 +104,22 @@ export function parseToken<T>(
 
 export function verifyToken(
   token: string,
-  secret?: string,
+  subject?: string,
   issuer?: string,
-  options?: VerifyOptions
+  options?: VerifyTokenOptions
 ): Promise<void> {
   const opts = _.assign(
     {
-      issuer: issuer || appName || undefined,
+      subject,
+      issuer: issuer || appName,
     },
     options
   )
 
+  const secret = options && options.secret ? options.secret : defaultSecret
+
   return new Promise<void>((resolve, reject) => {
-    jwt.verify(token, secret || defaultSecret, opts, (err: Error | null) => {
+    jwt.verify(token, secret, opts, (err: Error | null) => {
       if (err) {
         reject(err)
         return
