@@ -17,12 +17,13 @@ if (!level) {
   }
 }
 
+const defaultReporter =
+  isDevEnv || isDebug ? new FancyReporter() : new JSONReporter()
+const reporters = [defaultReporter]
+
 const logger = consola.create({
+  reporters,
   level,
 })
-
-const reporter = isDevEnv || isDebug ? new FancyReporter() : new JSONReporter()
-
-logger.setReporters([reporter])
 
 export default logger
