@@ -13,7 +13,7 @@ interface TokenPayloadResult<T> {
 
 const appName = config.has('app.name') ? config.get('app.name') : undefined
 const defaultSecret = config.has('app.keys')
-  ? _.first(config.get('app.keys'))
+  ? _.join(config.get('app.keys'), '')
   : ''
 
 interface SecretOptions {
