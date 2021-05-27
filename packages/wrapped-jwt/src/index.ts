@@ -11,7 +11,7 @@ interface TokenPayloadResult<T> {
   payload?: T
 }
 
-const appName = config.has('app.name') ? config.get('app.name') : undefined
+const appName = config.has('app.name') ? config.get('app.name') : 'jwt'
 const defaultSecret = config.has('app.keys')
   ? _.join(config.get('app.keys'), '')
   : ''
