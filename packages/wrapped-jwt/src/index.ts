@@ -21,7 +21,11 @@ interface SecretOptions {
 }
 
 type SignTokenOptions = SignOptions & SecretOptions
-type VerifyTokenOptions = VerifyOptions & SecretOptions
+type VerifyTokenOptions = VerifyOptions &
+  SecretOptions & {
+    ignoreSubject?: boolean
+    ignoreIssuer?: boolean
+  }
 
 export function signToken(
   payload: TokenPayload,
@@ -108,13 +112,23 @@ export function verifyToken(
   issuer?: string,
   options?: VerifyTokenOptions
 ): Promise<void> {
-  const opts = _.assign(
+  let opts = _.assign(
     {
       subject,
       issuer: issuer || appName,
     },
     options
   )
+
+  if (options) {
+    if (options.ignoreSubject) {
+      opts = _.omit(opts, ['subject'])
+    }
+
+    if (options.ignoreIssuer) {
+      opts = _.omit(opts, ['issuer'])
+    }
+  }
 
   const secret = options && options.secret ? options.secret : defaultSecret
 
