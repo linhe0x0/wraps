@@ -20,7 +20,10 @@ interface SecretOptions {
   secret?: string
 }
 
-type SignTokenOptions = SignOptions & SecretOptions
+type SignTokenOptions = SignOptions &
+  SecretOptions & {
+    expiresInDays?: number
+  }
 type VerifyTokenOptions = VerifyOptions &
   SecretOptions & {
     ignoreSubject?: boolean
@@ -34,7 +37,7 @@ export function signToken(
 ): Promise<string> {
   const now = Math.floor(Date.now() / 1000)
   const rest = 86400 - (now % 86400)
-  const expiresInDays = 30
+  const expiresInDays = options ? options.expiresInDays || 30 : 30
   const deviation = 7200
   const expiresIn = now + expiresInDays * 86400 + rest + deviation
 
