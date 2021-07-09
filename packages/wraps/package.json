@@ -1,6 +1,6 @@
 {
   "name": "@sqrtthree/wraps",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Some wrapped node packages.",
   "main": "dist/index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "node": ">=10"
   },
   "dependencies": {
-    "@sqrtthree/wrapped-jwt": "~0.2.0",
+    "@sqrtthree/wrapped-jwt": "~0.3.0",
     "@sqrtthree/wrapped-consola": "~0.1.0",
     "@sqrtthree/wrapped-bcrypt": "~0.1.0"
   },
