@@ -41,16 +41,16 @@ export function signToken(
   const deviation = 7200
   const expiresIn = now + expiresInDays * 86400 + rest + deviation
 
+  const secret = options && options.secret ? options.secret : defaultSecret
+
   const opts = _.assign(
     {
       expiresIn,
       subject,
       issuer: appName,
     },
-    options
+    _.omit(options, ['secret', 'expiresInDays'])
   )
-
-  const secret = options && options.secret ? options.secret : defaultSecret
 
   return new Promise((resolve, reject) => {
     jwt.sign(
@@ -82,7 +82,7 @@ export function parseToken<T>(
       subject,
       issuer: issuer || appName,
     },
-    options
+    _.omit(options, ['secret'])
   )
 
   const secret = options && options.secret ? options.secret : defaultSecret
@@ -120,7 +120,7 @@ export function verifyToken(
       subject,
       issuer: issuer || appName,
     },
-    options
+    _.omit(options, ['secret', 'ignoreSubject', 'ignoreIssuer'])
   )
 
   if (options) {
