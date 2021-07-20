@@ -35,11 +35,15 @@ export function signToken(
   subject?: string,
   options?: SignTokenOptions
 ): Promise<string> {
-  const now = Math.floor(Date.now() / 1000)
-  const rest = 86400 - (now % 86400)
   const expiresInDays = options ? options.expiresInDays || 30 : 30
-  const deviation = 7200
-  const expiresIn = now + expiresInDays * 86400 + rest + deviation
+
+  const now = Date.now()
+  const date = new Date()
+
+  date.setHours(23, 59, 59, 999)
+  date.setDate(date.getDate() + expiresInDays)
+
+  const expiresIn = Math.floor((date.getTime() - now) / 1000)
 
   const secret = options && options.secret ? options.secret : defaultSecret
 
