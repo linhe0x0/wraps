@@ -7,10 +7,6 @@ import _ from 'lodash'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TokenPayload = Record<string, any>
 
-interface TokenPayloadResult<T> {
-  payload?: T
-}
-
 const appName = config.has('app.name') ? config.get('app.name') : 'jwt'
 const defaultSecret = config.has('app.keys')
   ? _.join(config.get('app.keys'), '')
@@ -96,7 +92,7 @@ export function parseToken<T>(
       token,
       secret,
       opts,
-      (err: Error | null, result: TokenPayloadResult<T> | undefined) => {
+      (err: Error | null, result: jwt.JwtPayload | undefined) => {
         if (err) {
           reject(err)
           return

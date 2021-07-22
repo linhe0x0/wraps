@@ -28,7 +28,7 @@
     "lodash": "~4.17.21"
   },
   "devDependencies": {
-    "@sqrtthree/tsconfig": "^0.1.0",
+    "@sqrtthree/tsconfig": "~1.0.0",
     "@types/jsonwebtoken": "~8.5.1",
     "@types/node": "^14.14.37",
     "ava": "~3.15.0",
