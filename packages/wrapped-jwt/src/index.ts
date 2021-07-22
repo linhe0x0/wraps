@@ -50,7 +50,7 @@ export function signToken(
   const opts = _.assign(
     {
       expiresIn,
-      subject,
+      subject: subject || 'default',
       issuer: appName,
     },
     _.omit(options, ['secret', 'expiresInDays'])
