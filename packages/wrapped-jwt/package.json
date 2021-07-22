@@ -17,6 +17,9 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "files": [
+    "dist"
+  ],
   "author": "sqrtthree <imsqrtthree@gmail.com>",
   "license": "MIT",
   "dependencies": {
