@@ -33,15 +33,15 @@ export function signToken(
   options?: SignTokenOptions
 ): Promise<string> {
   const expiresInDays =
-    options && options.expiresInDays ? options.expiresInDays : 30
+    options && options.expiresInDays !== undefined ? options.expiresInDays : 30
   const offsetMinutes =
-    options && options.offsetMinutes ? options.offsetMinutes : 0
+    options && options.offsetMinutes !== undefined ? options.offsetMinutes : 0
 
   const now = Date.now()
   const date = new Date()
 
-  date.setHours(23, 59 + offsetMinutes, 59, 999)
   date.setDate(date.getDate() + expiresInDays)
+  date.setHours(23, 59 + offsetMinutes, 59, 999)
 
   const expiresIn = Math.floor((date.getTime() - now) / 1000)
 
