@@ -1,6 +1,6 @@
 const test = require('ava')
 const jwt = require('jsonwebtoken')
-const { endOfDay, addDays } = require('date-fns')
+const { endOfDay, addDays, addMinutes } = require('date-fns')
 
 const { signToken } = require('../dist/index')
 const config = require('../config/test.js')
@@ -87,6 +87,29 @@ test('should sign payload with special expiresIn', async (t) => {
   )
 
   const exp = Math.floor(addDays(endOfDay(new Date()), 18) / 1000)
+
+  jwt.verify(result, defaultSecret, (err, decoded) => {
+    t.is(err, null)
+    t.is(decoded.exp, exp)
+    t.is(decoded.payload.a, 1)
+  })
+})
+
+test('should sign payload with special expiresIn and offsetMinutes', async (t) => {
+  const result = await signToken(
+    {
+      a: 1,
+    },
+    '',
+    {
+      expiresInDays: 18,
+      offsetMinutes: 12,
+    }
+  )
+
+  const exp = Math.floor(
+    addMinutes(addDays(endOfDay(new Date()), 18), 12) / 1000
+  )
 
   jwt.verify(result, defaultSecret, (err, decoded) => {
     t.is(err, null)

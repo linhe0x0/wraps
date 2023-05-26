@@ -18,12 +18,13 @@ interface SecretOptions {
 
 type SignTokenOptions = SignOptions &
   SecretOptions & {
-    expiresInDays?: number
+    expiresInDays?: number | undefined
+    offsetMinutes?: number | undefined
   }
 type VerifyTokenOptions = VerifyOptions &
   SecretOptions & {
-    ignoreSubject?: boolean
-    ignoreIssuer?: boolean
+    ignoreSubject?: boolean | undefined
+    ignoreIssuer?: boolean | undefined
   }
 
 export function signToken(
@@ -31,12 +32,15 @@ export function signToken(
   subject?: string,
   options?: SignTokenOptions
 ): Promise<string> {
-  const expiresInDays = options ? options.expiresInDays || 30 : 30
+  const expiresInDays =
+    options && options.expiresInDays ? options.expiresInDays : 30
+  const offsetMinutes =
+    options && options.offsetMinutes ? options.offsetMinutes : 0
 
   const now = Date.now()
   const date = new Date()
 
-  date.setHours(23, 59, 59, 999)
+  date.setHours(23, 59 + offsetMinutes, 59, 999)
   date.setDate(date.getDate() + expiresInDays)
 
   const expiresIn = Math.floor((date.getTime() - now) / 1000)
@@ -49,7 +53,7 @@ export function signToken(
       subject: subject || 'default',
       issuer: appName,
     },
-    _.omit(options, ['secret', 'expiresInDays'])
+    _.omit(options, ['secret', 'expiresInDays', 'offsetMinutes'])
   )
 
   return new Promise((resolve, reject) => {
